@@ -29,7 +29,8 @@ class MainActivity : ComponentActivity() {
             ListyCity3Theme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     CityListScreen(
-                        cities = cityRepository.cities,
+                        cities = cityRepository.cities, // starter rack of cities
+                        onAddCity = {cityRepository.addCity(it)}, // city value will be passed in
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -37,3 +38,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+/**
+ * recommended approach (per lab assignment instructions):
+ * 1. track the selected city object
+ * 2. store its name and province in text fields
+ * 3. create a new city object (updatedCity) with these updated values
+ * 4. replace the city in the list
+ */
