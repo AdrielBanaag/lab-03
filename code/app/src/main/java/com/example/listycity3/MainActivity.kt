@@ -31,6 +31,16 @@ class MainActivity : ComponentActivity() {
                     CityListScreen(
                         cities = cityRepository.cities, // starter rack of cities
                         onAddCity = {cityRepository.addCity(it)}, // city value will be passed in
+
+                        // A DISCLAIMER
+                        // onUpdateCity adjusted per some advice from Google's Gemini (09/18/26)
+                        // and some assistance from Kotlin's "higher order functions" page:
+                        // (https://kotlinlang.org/docs/lambdas.html#function-types)
+                        onUpdateCity = { oldCity, newCity -> cityRepository.updateCity(oldCity, newCity) },
+                        // prior functionality overhauled to fix minor bugs that resulted from
+                        // me improperly passing oldCity and newCity into the updateCity apparatus
+                        // no other text in this file has been altered in any way
+
                         modifier = Modifier.padding(innerPadding)
                     )
                 }

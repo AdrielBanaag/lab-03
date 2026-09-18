@@ -1,6 +1,5 @@
 package com.example.listycity3
 
-import android.R.attr.onClick
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,6 +35,9 @@ import androidx.compose.ui.graphics.Color
 fun CityListScreen(
     cities: List<City>,
     onAddCity: (City) -> Unit, // CityListScreen receives function which takes a City object and performs an action
+    // nothing is returned
+    onUpdateCity: (City, City) -> Unit, // CityListScreen receives function which takes two City objects and performs an action
+    // nothing is returned
     modifier: Modifier = Modifier
 ) {
     var newCityName by remember {mutableStateOf("")} // input city name
@@ -93,26 +95,60 @@ fun CityListScreen(
                     modifier = Modifier.padding(vertical = 12.dp),
                     onClick = {
                         if (newCityName.isNotBlank() && newProvinceName.isNotBlank()) {
-                            onAddCity(
-                                City(
-                                    name = newCityName,
-                                    province = newProvinceName
-                                )
+                            val city = City(
+                                name = newCityName,
+                                province = newProvinceName
                             )
+                            // statements directly below slightly reworked by
+                            // Google's Gemini (09/18/26) to fix minor bugs
+                            // regarding the calling of nullable functions
+                            if (selectedCity == null) {
+                                onAddCity(city) // if no selected city (i.e. Add Mode) then use onAddCity function
+                            } else {
+                                onUpdateCity(selectedCity!!, city) // otherwise use the other one
+                                // that now is able to pass in nullables thanks to "!!"
+                                // (the extra safeguard renders this useless but it will crash
+                                // the code otherwise)
+                            }
+                            // end of A.I.-assisted snippet
+                            // comments in this snippet are explicitly mine (human written)
+                            // and based on the lecture notes
+
+                            // once city added/updated now reset everything to base state
                             newCityName = ""
                             newProvinceName = ""
                             showAddCityFields = false
+                            selectedCity = null // thus resetting it post-update
                         }
                     }
                 ) {
-                    Text("Add city...")
+                    if(selectedCity == null) {
+                        Text("Add city") // Add City mode
+                    }
+                    else {
+                        Text("Update") // Update City mode
+                    }
                 }
             }
         }
 
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             itemsIndexed(cities) { index, city ->
-                CityRow(city = city)
+                CityRow(
+                    city = city,
+                    // FULL DISCLAIMER
+                    // the following segment was reworked by Google Gemini (09/18/26) to link it to the
+                    // "clickable" functionality seen in CityRow
+                    // comments are mine (human written), only the code was altered
+                    isSelected = selectedCity == city, // if selectedCity is city then that is isSelected
+                    onClick = {
+                        selectedCity = city // selectedCity equals city you tapped on
+                        newCityName = city.name
+                        newProvinceName = city.province
+                        showAddCityFields = true // so you don't have to click the plus button again
+                    }
+                    // end of A.I.-assisted snippet - no other code was altered outside of these
+                )
 
                 if (index < cities.lastIndex) {
                     HorizontalDivider()
@@ -123,15 +159,23 @@ fun CityListScreen(
 }
 
 @Composable
-fun CityRow(city: City) {
+fun CityRow(
+    // FULL DISCLAIMER
+    // the following snippet was altered by Google's Gemini (09/18/26)
+    // to slightly rework the way in which "clickable" was
+    // implemented, as seen in the snippet directly above
+    city: City,
+    isSelected: Boolean,
+    onClick: () -> Unit, // links to the onClick seen earlier
+    modifier: Modifier = Modifier
+    // end of A.I. assisted snippet
+    // outside of these snippets no other code has been altered
+) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
+            .clickable { onClick() } //
             .padding(horizontal = 20.dp, vertical = 16.dp)
-            .clickable()
-        // FILL IN CLICKABLE!
-        // reuse text fields to enter updated city name / province
-        // use a callback function to send the edit action upward
     ) {
         Text(
             text = city.name,
@@ -157,7 +201,14 @@ fun CityListScreenPreview() {
                 City("Vancouver", "BC"),
                 City("Calgary", "AB")
             ),
-            onAddCity = {}
+            onAddCity = {},
+            onUpdateCity = { _, _ -> } // this particular line of code
+            // was mildly altered by Google's Gemini (09/18/26) to
+            // link it to the onUpdateCity seen in CityListScreen
+            // City (implied) and City (implied) passed into function
+            // to yield a Void object (i.e. nothing returned)
+            // and some assistance from Kotlin's "higher order functions" page:
+            // (https://kotlinlang.org/docs/lambdas.html#function-types)
         )
     }
 }
